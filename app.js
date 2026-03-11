@@ -6,7 +6,15 @@ var logger = require('morgan');
 
 const mongoose = require('mongoose');
 const notesRouter = require('./routes/notes');
-const animesRouter = require('./routes/animes');
+const animesRouter = require('./routes/anime');
+
+const session = require('express-session');
+
+const connectMongo = require('connect-mongo');
+const MongoStore = connectMongo.default || connectMongo; 
+
+const passport = require('passport');
+const localStrategy = require('./strategies/local');
 
 const dns = require('node:dns/promises');
 dns.setServers(['1.1.1.1', '8.8.8.8']);
@@ -21,6 +29,30 @@ mongoose.connect(uri)
   .then(() => console.log("Berhasil connect ke MongoDB Atlas!"))
   .catch(err => console.error("Gagal connect MongoDB Atlas:", err));
 
+
+// Konfigurasi Session untuk disimpan langsung di MongoDB Atlas 
+app.use(session({
+  secret: 'rahasia_negara_123', 
+  resave: false, 
+  saveUninitialized: true, 
+  store: MongoStore.create({ 
+    mongoUrl: uri 
+  })
+}));
+
+// Mengaktifkan Passport dan sistem Session-nya 
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(localStrategy); 
+
+
+passport.serializeUser((user, callback) => {
+  callback(null, user);
+});
+passport.deserializeUser((obj, callback) => {
+  callback(null, obj);
+});
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
@@ -34,7 +66,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/notes', notesRouter);
-app.use('/animes', animesRouter);
+app.use('/anime', animesRouter);
+
+const authRouter = require('./routes/auth');
+app.use('/auth', authRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
