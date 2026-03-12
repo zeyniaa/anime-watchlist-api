@@ -15,7 +15,7 @@ pipeline {
 
         stage('Inject ENV') {
             steps {
-                withCredentials([file(credentialsid: 'env-file', variable: 'ENVFILE')]) {
+                withCredentials([file(credentialsId: 'env-file', variable: 'ENVFILE')]) {
                     sh '''
                     rm -f .env
                     cp "$ENVFILE" .env
