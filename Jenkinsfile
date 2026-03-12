@@ -4,7 +4,8 @@ pipeline {
     stages {
         stage('Clone Repo') {
             steps {
-                git branch: 'master', url: 'https://github.com/zeyniaa/anime-watchlist-api.git'
+                git url: 'https://github.com/zeyniaa/anime-watchlist-api.git',
+                branch: 'master'
             }
         }
 
