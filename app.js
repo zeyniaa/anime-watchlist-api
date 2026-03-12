@@ -10,7 +10,7 @@ const animesRouter = require('./routes/anime');
 
 const session = require('express-session');
 
-//cobaa lagi
+//cobaa lagii
 const connectMongo = require('connect-mongo');
 const MongoStore = connectMongo.default || connectMongo; 
 
