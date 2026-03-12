@@ -1,37 +1,44 @@
 pipeline {
     agent any
 
+    environment {-
+
+    }
+
     stages {
-        stage('Checkout') {
+        stage('Clone Repo') {
             steps {
-                checkout scm
+                git url: 'https://github.com/zeyniaa/anime-watchlist-api.git'
+                branch: 'master'
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Inject ENV') {
             steps {
-                echo 'Installing modules'
-                bat 'npm install'
+                withCredentials([file(credentialsid: 'env-file', variable: 'ENVFILE')]) {
+                    sh '''
+                    rm -f .env
+                    cp "$ENVFILE" .env
+                    chmod 600.env
+                    '''
+                }
             }
         }
 
-        stage('Test') {
+        stage('Build Docker') {
             steps {
-                echo 'Running tests'
-                bat 'npm test' 
+                sh 'docker compose build'
             }
         }
     }
     
-    post {
-        always {
-            echo 'Selesai menjalankan pipeline.'
-        }
-        success {
-            echo 'Berhasil'
-        }
-        failure {
-            echo 'Error'
+    stage ('Deploy') {
+        steps {
+            sh '''
+            docker compose down || true
+            docker compose up -d --build
+            docker ps
+            '''
         }
     }
 }
